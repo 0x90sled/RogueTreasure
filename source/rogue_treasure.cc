@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
@@ -34,7 +35,7 @@ bool ValidMove(vector<vector<string>> &map, Point &new_position) {
   return true;
 }
 
-void MoveCharacter(vector<vector<string>> &map, string &action, Point &current_position) {
+bool MoveCharacter(vector<vector<string>> &map, string &action, Point &current_position) {
   //We control the acceptable vocabulary, we know directions won't have the same
   //first letter. So, we can just lowercase it and know it should be unique
   int action_letter = tolower(action[0]);
@@ -68,19 +69,43 @@ void MoveCharacter(vector<vector<string>> &map, string &action, Point &current_p
 
   //Validate movement
   if (ValidMove(map, next_position)) {
+    //Rename for cleanliness
     int next_row = next_position.row;
     int next_column = next_position.column;
 
+    //Keep track of the next tile (could be a pickup)
     new_location_tile = map[next_row][next_column];
+
+    new_location_tile = map[next_row][next_column];
+    //Do replacement of characters
     map[current_row][current_column] = new_location_tile;
     map[next_row][next_column] = character_tile;
+
+    //Update the current position
     current_position = next_position;
   }
+
+  if (new_location_tile == "X") {
+    return true;
+  }
+
+  return false;
 }
 
+void ModifyMap(vector<vector<string>> &map) {
+  srand(time(0));
+
+  Point exit_point;
+  exit_point.row = rand() % 10 + 1;
+  exit_point.column = rand() % 10 + 1;
+
+  map[exit_point.row][exit_point.column] = "X";
+}
 
 int main() {
   const unsigned int size = 10;
+  bool win = false;
+
   system("cls");
 
   Point pos;
@@ -111,12 +136,13 @@ int main() {
 
   string action;
 
+  ModifyMap(map);
   do {
     PrintMap(map);
     cin >> action;
-    MoveCharacter(map, action, pos);
-    //system("cls");
-  } while (action != "quit" && action != "exit");
+    win = MoveCharacter(map, action, pos);
+    system("cls");
+  } while (!win && action != "quit" && action != "exit");
 
   return 0;
 }
